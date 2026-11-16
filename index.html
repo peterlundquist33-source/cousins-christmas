@@ -78,6 +78,17 @@
     font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.5px}
   .offline-note{display:none;background:#fdf1e4;border:1px solid var(--gold-soft);color:#6b4f1e;
     border-radius:4px;padding:11px 16px;font-size:13.5px;margin-bottom:18px}
+
+  /* ---- claim celebration overlay -------------------------------------- */
+  #celebrate{position:fixed;inset:0;background:rgba(6,39,32,.72);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:20px;cursor:pointer}
+  #celebrate.show{display:flex}
+  #celebrate .box{background:#fff;border-radius:6px;padding:14px 14px 18px;max-width:340px;
+    width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35);
+    border:1px solid var(--gold-soft)}
+  #celebrate img{display:block;width:100%;border-radius:3px;margin:0 0 12px}
+  #celebrate .msg{font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;font-weight:600;
+    color:var(--pine-dark)}
 </style>
 </head>
 <body>
@@ -119,6 +130,10 @@
   </section>
 </main>
 <footer>Cousins Christmas &middot; 2026</footer>
+<div id="celebrate"><div class="box">
+  <img id="celebrate-img" alt="Christmas movie celebration">
+  <div class="msg" id="celebrate-msg"></div>
+</div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-firestore-compat.min.js"></script>
@@ -214,16 +229,43 @@
     }).join('');
   }
 
+  // Verified-working Giphy GIFs from classic Christmas movies, celebrating a claim.
+  const CELEBRATION_GIFS = [
+    'https://media.giphy.com/media/K2l8gFcatHmsE/giphy.gif',           // Elf
+    'https://media.giphy.com/media/3ofT5EtPNBpIjC8jTy/giphy.gif',      // Elf, "Santa's coming!"
+    'https://media.giphy.com/media/MrxXXBriEIKBO/giphy.gif',           // Elf
+    'https://media.giphy.com/media/3ofT5Y4MjoyXXQIudy/giphy.gif',      // Elf, "That's shocking."
+    'https://media.giphy.com/media/3ohs7TnZLtBk4aASzK/giphy.gif',      // Christmas Vacation, Griswold tree
+    'https://media.giphy.com/media/XXvnnrJJnOVl6/giphy.gif',           // Christmas Vacation, decorations
+    'https://media.giphy.com/media/m6YGUpx6rJBbIn50he/giphy.gif',      // Home Alone, aftershave
+    'https://media.giphy.com/media/3o6wrt3p3yBny5Nu36/giphy.gif',      // Home Alone, window
+    'https://media.giphy.com/media/l0ErHJiSlwwfNuE0w/giphy.gif',       // A Christmas Story, "Fra-gi-ley"
+    'https://media.giphy.com/media/3oz8xN5v5Oa5yTSvIs/giphy.gif'       // It's a Wonderful Life
+  ];
+
+  function celebrate(name) {
+    const overlay = document.getElementById('celebrate');
+    const img = document.getElementById('celebrate-img');
+    const msg = document.getElementById('celebrate-msg');
+    img.src = CELEBRATION_GIFS[Math.floor(Math.random() * CELEBRATION_GIFS.length)];
+    msg.textContent = `Thanks, ${name}! \u{1F384}`;
+    overlay.classList.add('show');
+    const close = () => overlay.classList.remove('show');
+    overlay.onclick = close;
+    setTimeout(close, 4000);
+  }
+
   function applyClaim(id, category, name, dish) {
     const data = { category, name, dish, updated: Date.now() };
     if (db) {
-      db.doc('potluck/' + id).set(data).catch(error => {
+      db.doc('potluck/' + id).set(data).then(() => celebrate(name)).catch(error => {
         alert('Could not save: ' + error.message);
       });
     } else {
       claims[id] = data;
       writeLocal(id, data);
       render();
+      celebrate(name);
     }
   }
 
