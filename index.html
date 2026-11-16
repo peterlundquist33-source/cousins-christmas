@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Cousins Christmas 2026</title>
+<style>
+  :root{
+    --green:#1f5d3f;--green-dark:#123b28;--red:#b23a3a;--gold:#c9a24b;
+    --cream:#fdf8ef;--ink:#23231f;--line:#e4dcc8;--muted:#6b6557;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  a{color:var(--green)}
+  header.top{background:linear-gradient(160deg,var(--green-dark),var(--green));
+    color:#fff;padding:36px 20px 30px;text-align:center}
+  header.top h1{margin:0 0 6px;font-size:30px;letter-spacing:.3px}
+  header.top p.sub{margin:0;color:#d8e8de;font-size:15px}
+  main{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;margin:0 0 20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card h2{margin:0 0 12px;font-size:17px;letter-spacing:.3px;color:var(--green-dark)}
+  .details dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
+  .details dt{font-weight:600;color:var(--muted);white-space:nowrap}
+  .details dd{margin:0}
+  .note{color:var(--muted);font-size:14px;margin-top:10px}
+  .cat{margin-bottom:26px}
+  .cat h3{margin:0 0 4px;font-size:16px;color:var(--red);display:flex;
+    align-items:baseline;justify-content:space-between;gap:8px}
+  .cat .count{font-size:13px;font-weight:500;color:var(--muted)}
+  .cat .portion-note{font-size:13px;color:var(--muted);margin:0 0 10px}
+  .slot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;
+    background:#fffdf8}
+  .slot.filled{background:#f3f8f3;border-color:#cfe3d4}
+  .slot .who{font-size:14.5px}
+  .slot .who b{display:block}
+  .slot .who small{color:var(--muted)}
+  .slot .empty-label{color:var(--muted);font-style:italic}
+  .slot button{border:1px solid var(--green);background:var(--green);color:#fff;
+    border-radius:8px;padding:7px 14px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+  .slot button.secondary{background:#fff;color:var(--muted);border-color:var(--line)}
+  .slot button:hover{opacity:.9}
+  footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 0 30px}
+  .offline-note{display:none;background:#fff3cd;border:1px solid #e7d79a;color:#6b5a1e;
+    border-radius:10px;padding:10px 14px;font-size:13.5px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>🎄 Cousins Christmas</h1>
+  <p class="sub">Saturday, December 18, 2026 &middot; 6:00 PM</p>
+</header>
+<main>
+  <section class="card details">
+    <h2>The Details</h2>
+    <p>Come ready for a festive family get-together and some competitive games 🎲. We'll have the meat and a few cocktail options, so bring any other drinks you'd like to enjoy.</p>
+    <dl>
+      <dt>📅 When</dt><dd>Friday, December 18, 2026 at 6:00 PM</dd>
+      <dt>📍 Where</dt><dd>6616 Hillside Lane, Edina, MN 55439</dd>
+      <dt>🚗 Parking</dt><dd>Driveway or on the street</dd>
+    </dl>
+    <p class="note">Bring your competitive spirit, and get ready to catch up with everyone while finding out who has the winning streak this Christmas ✨</p>
+  </section>
+
+  <section class="card">
+    <h2>Potluck Sign-Up Sheet</h2>
+    <p class="note" style="margin-top:0">Please add details where necessary. Taps save live &mdash; everyone sees the sheet update in real time.</p>
+    <div id="offline-note" class="offline-note">Live sync isn't available right now &mdash; claims made on this device will only show here until the connection is back.</div>
+    <div id="sheet"></div>
+  </section>
+</main>
+<footer>Cousins Christmas &middot; 2026</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-firestore-compat.min.js"></script>
+<script>
+  /* Same Firebase project as Rizzlers Pick'ems / wedding planner / wolves draft.
+     These are public identifiers, not secrets; firestore.rules is what constrains writes. */
+  window.FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCtUp7DYEjdE5i_Vt9oTqzpmNAgHP32xy8",
+    authDomain: "rizzlers-pickems.firebaseapp.com",
+    projectId: "rizzlers-pickems",
+    storageBucket: "rizzlers-pickems.firebasestorage.app",
+    messagingSenderId: "401907218298",
+    appId: "1:401907218298:web:795ef076067ee1926b88c3"
+  };
+</script>
+<script>
+  // Fixed category/slot layout. Ids are keyed by <category>-<n> and never renumbered,
+  // same convention as the wedding to-do list, so a slot's identity survives reordering.
+  const CATEGORIES = [
+    { key: 'appetizers', label: 'Appetizers', slots: 4, portion: 'about 8 portions' },
+    { key: 'entrees',    label: 'Entrées',   slots: 3, portion: 'about 8 portions' },
+    { key: 'sides',      label: 'Sides',       slots: 5, portion: 'about 7 portions' },
+    { key: 'desserts',   label: 'Desserts',    slots: 4, portion: 'about 8 portions' }
+  ];
+
+  let db = null;
+  try {
+    if (window.firebase && window.FIREBASE_CONFIG) {
+      firebase.initializeApp(window.FIREBASE_CONFIG);
+      db = firebase.firestore();
+    }
+  } catch (error) { db = null; }
+
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  // Per-device local fallback so the sheet still works if Firestore is unreachable.
+  const localKey = id => 'potluck-local-' + id;
+  const readLocal = id => {
+    try { return JSON.parse(localStorage.getItem(localKey(id)) || 'null'); }
+    catch (e) { return null; }
+  };
+  const writeLocal = (id, data) => localStorage.setItem(localKey(id), JSON.stringify(data));
+  const clearLocal = id => localStorage.removeItem(localKey(id));
+
+  const sheet = document.getElementById('sheet');
+  const offlineNote = document.getElementById('offline-note');
+  if (!db) offlineNote.style.display = 'block';
+
+  const claims = {}; // id -> {category, name, dish} | undefined
+
+  function slotId(cat, i) { return cat + '-' + i; }
+
+  function render() {
+    sheet.innerHTML = CATEGORIES.map(cat => {
+      const filled = Array.from({ length: cat.slots }, (_, i) => claims[slotId(cat.key, i)]).filter(Boolean).length;
+      const rows = Array.from({ length: cat.slots }, (_, i) => {
+        const id = slotId(cat.key, i);
+        const claim = claims[id];
+        if (claim && claim.name) {
+          return `<div class="slot filled" data-id="${id}">
+            <div class="who"><b>${escapeHtml(claim.name)}</b><small>${escapeHtml(claim.dish || '')}</small></div>
+            <button class="secondary" data-action="unclaim" data-id="${id}">Remove</button>
+          </div>`;
+        }
+        return `<div class="slot" data-id="${id}">
+          <div class="who empty-label">Open slot</div>
+          <button data-action="claim" data-id="${id}" data-category="${cat.key}">Claim</button>
+        </div>`;
+      }).join('');
+      return `<div class="cat">
+        <h3>${cat.label}<span class="count">(${filled}/${cat.slots} claimed)</span></h3>
+        <p class="portion-note">Note: each contribution should provide ${cat.portion}.</p>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
+
+  function applyClaim(id, category, name, dish) {
+    const data = { category, name, dish, updated: Date.now() };
+    if (db) {
+      db.doc('potluck/' + id).set(data).catch(error => {
+        alert('Could not save: ' + error.message);
+      });
+    } else {
+      claims[id] = data;
+      writeLocal(id, data);
+      render();
+    }
+  }
+
+  function applyUnclaim(id) {
+    if (db) {
+      db.doc('potluck/' + id).delete().catch(error => alert('Could not remove: ' + error.message));
+    } else {
+      delete claims[id];
+      clearLocal(id);
+      render();
+    }
+  }
+
+  sheet.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.action === 'claim') {
+      const name = (prompt("What's your name?", '') || '').trim();
+      if (!name) return;
+      const dish = (prompt('What are you bringing?', '') || '').trim();
+      applyClaim(id, btn.dataset.category, name, dish);
+    } else if (btn.dataset.action === 'unclaim') {
+      const claim = claims[id];
+      if (claim && !confirm(`Remove ${claim.name}'s claim on this slot?`)) return;
+      applyUnclaim(id);
+    }
+  });
+
+  if (db) {
+    db.collection('potluck').onSnapshot(snap => {
+      Object.keys(claims).forEach(k => delete claims[k]);
+      snap.docs.forEach(d => { claims[d.id] = d.data(); });
+      render();
+    }, error => {
+      console.error('Live sheet unavailable', error);
+      offlineNote.style.display = 'block';
+    });
+  } else {
+    CATEGORIES.forEach(cat => {
+      for (let i = 0; i < cat.slots; i++) {
+        const id = slotId(cat.key, i);
+        const local = readLocal(id);
+        if (local) claims[id] = local;
+      }
+    });
+    render();
+  }
+</script>
+</body>
+</html>
